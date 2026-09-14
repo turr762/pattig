@@ -15,7 +15,7 @@
 </head>
 <body>
     <div class="box">
-        <h3>Buat Ujian Baru</h3>
+        <h3>Login Ujian Siswa (Admin)</h3>
         <input type="text" id="gformLink" placeholder="Link Google Form" required>
         <input type="datetime-local" id="expiryDate" required>
         <input type="text" id="exitPassword" placeholder="Password Keluar" required>
@@ -24,7 +24,7 @@
     </div>
 
     <script>
-        // URL DATABASE KAMU SUDAH OTOMATIS DISINI
+        // URL disesuaikan ke region Singapore (asia-southeast1)
         const FIREBASE_URL = "https://pattig-82484-default-rtdb.asia-southeast1.firebasedatabase.app/exams";
 
         async function sha256(message) {
