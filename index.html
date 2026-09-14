@@ -3,30 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Exambro Sekolah</title>
+    <title>Admin Exambro</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #121212; color: #00ffff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: #1e1e1e; padding: 20px; border-radius: 10px; width: 100%; max-width: 400px; box-shadow: 0 0 15px #00ffff; }
-        input, button { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 5px; box-sizing: border-box; }
-        input { background: #333; color: #fff; }
-        button { background: #00ffff; color: #000; font-weight: bold; cursor: pointer; }
-        button:hover { background: #00cccc; }
+        body { font-family: sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 15px; font-size: 14px; text-align: left; background: #e9ecef; padding: 10px; border-radius: 4px; display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Buat Ujian Baru</h2>
+    <div class="box">
+        <h3>Buat Ujian Baru</h3>
         <input type="text" id="gformLink" placeholder="Link Google Form" required>
         <input type="datetime-local" id="expiryDate" required>
-        <input type="text" id="exitPassword" placeholder="Password Keluar Ujian" required>
-        <button onclick="buatUjian()">Generate & Simpan</button>
-        <p id="result"></p>
+        <input type="text" id="exitPassword" placeholder="Password Keluar" required>
+        <button onclick="buatUjian()">Generate Kode Ujian</button>
+        <div id="result"></div>
     </div>
 
     <script>
-        const FIREBASE_URL = "https://console.firebase.google.com/u/2/project/pattig-82484/database/pattig-82484-default-rtdb/data/~2F?fb_gclid=CjwKCAjwtp7VBhBjEiwAJfpV-wDCmXy9Rk-W3SJLQMqPTPqKHD01GFOZTV6zmZ6vx07lQ1wc4LYZwhoCNDMQAvD_BwE&fb_utm_campaign=Cloud-SS-DR-Firebase-FY26-global-gsem-1713590&fb_utm_content=text-ad&fb_utm_medium=cpc&fb_utm_source=google&fb_utm_term=KW_firebase"; // GANTI DENGAN URL FIREBASE KAMU
+        // URL DATABASE KAMU SUDAH OTOMATIS DISINI
+        const FIREBASE_URL = "https://pattig-82484-default-rtdb.firebaseio.com/exams";
 
-        // Fungsi Hash SHA-256
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -34,7 +34,6 @@
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        // Generate 9 Random Karakter
         function generateId() {
             return Math.random().toString(36).substr(2, 9).toUpperCase();
         }
@@ -45,7 +44,7 @@
             const password = document.getElementById("exitPassword").value;
 
             if(!link || !expiry || !password) {
-                alert("Isi semua data!");
+                alert("Mohon isi semua kolom!");
                 return;
             }
 
@@ -59,20 +58,22 @@
                 passwordHash: hashedPassword
             };
 
-            // Simpan ke Firebase menggunakan REST API
             fetch(`${FIREBASE_URL}/${hashedId}.json`, {
                 method: 'PUT',
                 body: JSON.stringify(data)
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById("result").innerHTML = `
-                    <strong style="color:#0f0">Berhasil!</strong><br>
-                    ID Ujian (Berikan ke Siswa): <b>${rawId}</b><br>
+                const resDiv = document.getElementById("result");
+                resDiv.style.display = "block";
+                resDiv.innerHTML = `
+                    <strong style="color:green">Berhasil Disimpan!</strong><br><br>
+                    Berikan ID ini ke siswa:<br>
+                    <b style="font-size:18px">${rawId}</b><br><br>
                     Password Keluar: <b>${password}</b>
                 `;
             })
-            .catch(error => alert("Error: " + error));
+            .catch(error => alert("Gagal menyimpan data: " + error));
         }
     </script>
 </body>
