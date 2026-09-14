@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Exambro Sekolah</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: #00ffff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: #1e1e1e; padding: 20px; border-radius: 10px; width: 100%; max-width: 400px; box-shadow: 0 0 15px #00ffff; }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 5px; box-sizing: border-box; }
+        input { background: #333; color: #fff; }
+        button { background: #00ffff; color: #000; font-weight: bold; cursor: pointer; }
+        button:hover { background: #00cccc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Buat Ujian Baru</h2>
+        <input type="text" id="gformLink" placeholder="Link Google Form" required>
+        <input type="datetime-local" id="expiryDate" required>
+        <input type="text" id="exitPassword" placeholder="Password Keluar Ujian" required>
+        <button onclick="buatUjian()">Generate & Simpan</button>
+        <p id="result"></p>
+    </div>
+
+    <script>
+        const FIREBASE_URL = "https://PROJECT-KAMU.firebaseio.com/exams"; // GANTI DENGAN URL FIREBASE KAMU
+
+        // Fungsi Hash SHA-256
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Generate 9 Random Karakter
+        function generateId() {
+            return Math.random().toString(36).substr(2, 9).toUpperCase();
+        }
+
+        async function buatUjian() {
+            const link = document.getElementById("gformLink").value;
+            const expiry = new Date(document.getElementById("expiryDate").value).getTime();
+            const password = document.getElementById("exitPassword").value;
+
+            if(!link || !expiry || !password) {
+                alert("Isi semua data!");
+                return;
+            }
+
+            const rawId = generateId();
+            const hashedId = await sha256(rawId);
+            const hashedPassword = await sha256(password);
+
+            const data = {
+                link: link,
+                expiry: expiry,
+                passwordHash: hashedPassword
+            };
+
+            // Simpan ke Firebase menggunakan REST API
+            fetch(`${FIREBASE_URL}/${hashedId}.json`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").innerHTML = `
+                    <strong style="color:#0f0">Berhasil!</strong><br>
+                    ID Ujian (Berikan ke Siswa): <b>${rawId}</b><br>
+                    Password Keluar: <b>${password}</b>
+                `;
+            })
+            .catch(error => alert("Error: " + error));
+        }
+    </script>
+</body>
+</html>
